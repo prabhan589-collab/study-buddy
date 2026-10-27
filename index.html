@@ -1,0 +1,251 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Study Buddy 🌷</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: Arial, sans-serif;
+      background: #fff5f8;
+      color: #51445a;
+    }
+
+    .container {
+      max-width: 850px;
+      margin: auto;
+    }
+
+    header {
+      text-align: center;
+      padding: 20px;
+      background: #f5e5ff;
+      border-radius: 22px;
+      margin-bottom: 20px;
+    }
+
+    h1 { color: #8256a5; }
+    h2 { font-size: 19px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 18px;
+      box-shadow: 0 4px 14px #d8bfd333;
+    }
+
+    input, button {
+      font: inherit;
+      padding: 11px;
+      border-radius: 10px;
+      border: 1px solid #e4d5eb;
+      margin: 4px 0;
+    }
+
+    input { width: 100%; }
+    button {
+      background: #cba9e8;
+      color: #352341;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover { background: #b992dc; }
+
+    .task {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1e8f5;
+    }
+
+    .task input { width: auto; }
+    .done { text-decoration: line-through; opacity: 0.6; }
+
+    #timer {
+      font-size: 38px;
+      text-align: center;
+      margin: 15px;
+      color: #8256a5;
+    }
+
+    progress {
+      width: 100%;
+      height: 20px;
+      accent-color: #b992dc;
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: #8e7b96;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🌷 Study Buddy</h1>
+      <p>Your little space to plan, focus and grow.</p>
+      <p id="today"></p>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <h2>📝 My Tasks</h2>
+        <form id="taskForm">
+          <input id="taskInput" placeholder="What do you need to do?" required>
+          <button type="submit">Add task +</button>
+        </form>
+        <div id="tasks"></div>
+        <p id="taskCount">0 tasks completed</p>
+      </section>
+
+      <section class="card">
+        <h2>⏳ Focus Timer</h2>
+        <p>Take one task at a time!</p>
+        <div id="timer">25:00</div>
+        <button id="start">Start</button>
+        <button id="pause">Pause</button>
+        <button id="reset">Reset</button>
+      </section>
+
+      <section class="card">
+        <h2>📚 Study Planner</h2>
+        <input id="subject" placeholder="Subject">
+        <input id="studyTime" placeholder="Time (e.g. 5 PM)">
+        <button id="addPlan">Add to planner +</button>
+        <div id="plans"></div>
+      </section>
+
+      <section class="card">
+        <h2>✨ My Progress</h2>
+        <p>Tasks completed today</p>
+        <progress id="progress" value="0" max="1"></progress>
+        <p id="progressText">Complete a task to see your progress!</p>
+        <p>Small steps make big progress. 💜</p>
+      </section>
+    </div>
+
+    <footer>Made with 💜 for your study journey</footer>
+  </div>
+
+  <script>
+    document.getElementById("today").textContent =
+      new Date().toLocaleDateString(undefined, {
+        weekday: "long", month: "long", day: "numeric"
+      });
+
+    let completed = 0;
+    let total = 0;
+    const tasks = document.getElementById("tasks");
+
+    function updateProgress() {
+      document.getElementById("taskCount").textContent =
+        completed + " of " + total + " tasks completed";
+
+      document.getElementById("progress").max = Math.max(total, 1);
+      document.getElementById("progress").value = completed;
+
+      document.getElementById("progressText").textContent =
+        total ? Math.round(completed / total * 100) + "% completed — keep going!"
+        : "Add your first task to get started!";
+    }
+
+    document.getElementById("taskForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const input = document.getElementById("taskInput");
+      const row = document.createElement("div");
+      row.className = "task";
+
+      const check = document.createElement("input");
+      check.type = "checkbox";
+
+      const label = document.createElement("span");
+      label.textContent = input.value;
+
+      check.addEventListener("change", function() {
+        label.classList.toggle("done", check.checked);
+        completed += check.checked ? 1 : -1;
+        updateProgress();
+      });
+
+      row.append(check, label);
+      tasks.appendChild(row);
+      total++;
+      input.value = "";
+      updateProgress();
+    });
+
+    document.getElementById("addPlan").addEventListener("click", function() {
+      const subject = document.getElementById("subject");
+      const time = document.getElementById("studyTime");
+
+      if (!subject.value.trim()) {
+        alert("Please enter a subject first!");
+        return;
+      }
+
+      const item = document.createElement("p");
+      item.textContent = "📖 " + subject.value +
+        (time.value.trim() ? " — " + time.value : "");
+
+      document.getElementById("plans").appendChild(item);
+      subject.value = "";
+      time.value = "";
+    });
+
+    let seconds = 25 * 60;
+    let interval = null;
+
+    function showTimer() {
+      const min = Math.floor(seconds / 60);
+      const sec = seconds % 60;
+      document.getElementById("timer").textContent =
+        String(min).padStart(2, "0") + ":" +
+        String(sec).padStart(2, "0");
+    }
+
+    document.getElementById("start").addEventListener("click", function() {
+      if (interval !== null) return;
+
+      interval = setInterval(function() {
+        if (seconds > 0) {
+          seconds--;
+          showTimer();
+        } else {
+          clearInterval(interval);
+          interval = null;
+          alert("Focus session complete! Great work! 🌷");
+        }
+      }, 1000);
+    });
+
+    document.getElementById("pause").addEventListener("click", function() {
+      clearInterval(interval);
+      interval = null;
+    });
+
+    document.getElementById("reset").addEventListener("click", function() {
+      clearInterval(interval);
+      interval = null;
+      seconds = 25 * 60;
+      showTimer();
+    });
+
+    showTimer();
+  </script>
+</body>
+</html>
